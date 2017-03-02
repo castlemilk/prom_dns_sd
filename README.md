@@ -9,8 +9,8 @@ Syntax allows for the mapping of targets ports and labels via regex in the follo
 
 ```json
 	{
-		're' : '.*',
-		'port': '9100',
-		'labels': { 'service' : 'node' },
+		"re" : ".*",
+		"port": "9100",
+		"labels": { "service" : "node" },
 	}
 ```
