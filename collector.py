@@ -86,6 +86,16 @@ class Collector:
 		
 		"""
 		domain_file_path = os.path.join(os.getcwd(),self.domain.replace('.','_')+'.json',)
+		try:
+			f_read = open(domain_file_path,'r')
+			sd_list_dict = json.load(f_read)
+		except IOError:
+			sd_list_dict = []
+		print("loading sd_dict")
+		print(sd_list_dict)
+		target_list = list(map(lambda x: x['targets'], sd_list_dict))
+		print(target_list)
+		all_targets_active = reduce(list.__add__, list(map(lambda x: x['targets'], sd_list_dict)), []) 
 		services = list(map(lambda x: x['name'], self.get_domain_services()))	
 		items = []
 		for port in ports:
@@ -95,20 +105,16 @@ class Collector:
 				if re.search(port['re'], service):
 					prom_targets.append('{}:{}'.format(service, port['port']))
 			if prom_targets:
-				item['targets'] = prom_targets
-				item['labels'] = port['labels']
-				items.append(item)
-	
-		try:
-			f_read = open(domain_file_path,'r')
-			sd_list_dict = json.load(f_read)
-		except IOError:
-			sd_list_dict = []
-		list(map(lambda x: sd_list_dict.append(x), items))
-		print(sd_list_dict)
+				new_items = list(filter(lambda x: not set(all_targets_active).__contains__(x), prom_targets))
+				print(new_items)
+				if new_items:
+					item['targets'] = new_items
+					item['labels'] = port['labels']
+					sd_list_dict.append(item)
+		
 		with open(domain_file_path, 'w') as f_write:
-			json.dump(sd_list_dict, f_write)	
-		return None
+			json.dump(sd_list_dict, f_write, sort_keys=True, indent=4, separators=(',', ': '))	
+	
 		
 if __name__=='__main__':
 	nameserver='10.0.0.10'
