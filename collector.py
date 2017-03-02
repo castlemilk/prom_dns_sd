@@ -2,12 +2,14 @@ import dns.query
 import dns.zone
 import os
 import json
+from functools import reduce
+import re
 
 
 
 
 class Collector:
-	def __init__(self, nameserver,domain, sd_file):
+	def __init__(self, nameserver,domain, sd_file_dir):
 		if nameserver:
 			self.nameserver = nameserver 
 		else:
@@ -16,14 +18,14 @@ class Collector:
 			self.domain = domain
 		else:
 			raise Exception("Must specify a domain")
-		if os.path.exists(sd_file):
+		if os.path.exists(sd_file_dir):
 			#the file is there
-			self.sd_file = os.path.join(os.getcwd(),sd_file)
-		elif os.access(os.path.dirname(os.path.join(os.getcwd(),sd_file)), os.W_OK):
+			self.sd_file_dir = os.path.join(os.getcwd(),sd_file_dir)
+		elif os.access(os.path.dirname(os.path.join(os.getcwd(),sd_file_dir)), os.W_OK):
 			# file does not exist but can create
-			self.sd_file = sd_file
+			self.sd_file_dir = sd_file_dir
 		else:
-			print('dirname: {}'.format(os.path.dirname(os.path.join(os.getcwd(),sd_file))))
+			print('dirname: {}'.format(os.path.dirname(os.path.join(os.getcwd(),sd_file_dir))))
 			raise Exception("Cannot write to that location")
 			
 		
@@ -53,7 +55,7 @@ class Collector:
 			items.append(item)
 		return items
 
-	def update_file(self, targets = None, port = None, labels = {}):
+	def update_domain_file(self, ports):
 		"""
 		Write out services into the format suitable for Prometheus
 		file based service discovery, in the following form:
@@ -83,29 +85,45 @@ class Collector:
 		
 		
 		"""
-		if not isinstance(targets, list):
-			targets = [targets]
-		if not isinstance(ports, list):
-			ports = [ports]
-		
-		item = {}
-		prom_targets = reduce(list.__add__, [ map(lambda x: x+":%s" % port, targets) for port in ports ], [])
-		item['targets'] = prom_targets
-		if labels:
-			item['labels'] = labels
+		domain_file_path = os.path.join(os.getcwd(),self.domain.replace('.','_')+'.json',)
+		services = list(map(lambda x: x['name'], self.get_domain_services()))	
+		items = []
+		for port in ports:
+			item = {}
+			prom_targets=[]
+			for service in services:
+				if re.search(port['re'], service):
+					prom_targets.append('{}:{}'.format(service, port['port']))
+			if prom_targets:
+				item['targets'] = prom_targets
+				item['labels'] = port['labels']
+				items.append(item)
+	
 		try:
-			f_read = open(self.sd_file,'r')
-			sd_list_dict = json.load(f)
+			f_read = open(domain_file_path,'r')
+			sd_list_dict = json.load(f_read)
 		except IOError:
 			sd_list_dict = []
-		sd_list_dict.append(item)
+		list(map(lambda x: sd_list_dict.append(x), items))
 		print(sd_list_dict)
-		#with open(self.sd_file, 'w') as f_write:
-		#	json.dump(sd_list_dict, f_write)	
+		with open(domain_file_path, 'w') as f_write:
+			json.dump(sd_list_dict, f_write)	
+		return None
 		
 if __name__=='__main__':
 	nameserver='10.0.0.10'
 	domain='mgmt.pants.net'
-	collector = Collector(nameserver,domain, 'test_sd_file.json')
+	collector = Collector(nameserver,domain, os.getcwd())
 	print(collector.get_domain_services())
-	collector.update()
+	collector.update_domain_file([
+		{ 
+			're' : '.*',
+			'port' : '9100', 
+			'labels': { 'service' : 'node' },
+		},
+		{ 
+			're' : 'kafka.*',
+			'port' : '7070',
+			'labels': { 'service': 'JMX' },
+		}
+		])
