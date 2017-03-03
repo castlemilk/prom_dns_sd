@@ -89,6 +89,8 @@ class Collector:
 		try:
 			f_read = open(domain_file_path,'r')
 			sd_list_dict = json.load(f_read)
+			if not sd_list_dict:
+				sd_list_dict = []
 		except IOError:
 			sd_list_dict = []
 		print("loading sd_dict")
@@ -106,14 +108,33 @@ class Collector:
 					prom_targets.append('{}:{}'.format(service, port['port']))
 			if prom_targets:
 				new_items = list(filter(lambda x: not set(all_targets_active).__contains__(x), prom_targets))
-				print(new_items)
-				if new_items:
-					item['targets'] = new_items
+				removed_items = list(filter(lambda x: not set(prom_targets).__contains__(x), all_targets_active))
+				print("OUTSIDE:")
+				print(sd_list_dict)
+				indexes_changed = self.get_indexes_changed(sd_list_dict, prom_targets)
+				if indexes_changed:
+					for index in indexes_changed:
+						if new_items:
+							sd_list_dict[index]['targets'] += new_items
+						if removed_items:
+							sd_list_dict[index]['targets'] = list(filter(lambda x: x not in removed_items,
+							sd_list_dict[index]['targets']))
+				elif new_items:
+					item['targets'] = prom_targets
 					item['labels'] = port['labels']
 					sd_list_dict.append(item)
 		
 		with open(domain_file_path, 'w') as f_write:
 			json.dump(sd_list_dict, f_write, sort_keys=True, indent=4, separators=(',', ': '))	
+	def get_indexes_changed(self, sd_list_dict = [], targets = []):
+		if sd_list_dict:
+			print("____TARGETS: ")
+			print(targets)
+			print("____SD_LIST_DICT: ")
+			print(sd_list_dict)
+			return [sd_list_dict.index(item) for item in filter(lambda x: bool(set(targets) & set(x.get('targets'))), sd_list_dict)]
+		else:
+			return []
 	
 		
 if __name__=='__main__':
