@@ -195,7 +195,7 @@ def main():
                 {
                         'name': 'JMX',
                         're' : 'kafka.*',
-                        'port' : '7070',
+                        'port' : '7071',
                         'labels': { 'service': 'JMX' },
                 },
                 ])
