@@ -187,16 +187,28 @@ def main():
 	while True:
 		collector.update_domain_file([
 		{
-                        'name': 'node-exporter',
-                        're' : '.*',
+                        'name': 'kafka_node',
+                        're' : 'kafka.*',
                         'port' : '9100',
-                        'labels': { 'service' : 'node' },
+                        'labels': { 'service' : 'kafka_node' },
                 },
                 {
                         'name': 'JMX',
                         're' : 'kafka.*',
-                        'port' : '7070',
-                        'labels': { 'service': 'JMX' },
+                        'port' : '7071',
+                        'labels': { 'service': 'kafka_JMX' },
+                },
+		{
+                        'name': 'lb_node',
+                        're' : 'lb.*',
+                        'port' : '9100',
+                        'labels': { 'service' : 'lb_node' },
+                },
+		{
+                        'name': 'lb_node',
+                        're' : 'lb.*',
+                        'port' : '9101',
+                        'labels': { 'service' : 'haproxy' },
                 },
                 ])
 		time.sleep(args['interval'])
