@@ -209,6 +209,7 @@ def main():
                         're' : 'lb.*',
                         'port' : '9101',
                         'labels': { 'service' : 'haproxy' },
+                        'labels': { 'service': 'JMX' },
                 },
                 ])
 		time.sleep(args['interval'])
