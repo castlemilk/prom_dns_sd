@@ -187,16 +187,44 @@ def main():
 	while True:
 		collector.update_domain_file([
 		{
-                        'name': 'kafka_node',
-                        're' : 'kafka.*',
+                        'name': 'kafka_node_cluster1',
+                        're' : 'kafka-[0-9]+.*',
                         'port' : '9100',
-                        'labels': { 'service' : 'kafka_node' },
+                        'labels': { 'service' : 'kafka_node',
+				    'cluster': 'one' },
+                },
+		{
+                        'name': 'kafka_node_cluster2',
+                        're' : 'kafka-cluster2.*',
+                        'port' : '9100',
+                        'labels': { 'service' : 'kafka_node',
+				    'cluster': 'two' },
+                },
+		{
+                        'name': 'mss_customers_logstash_node',
+                        're' : 'logstash.*',
+                        'port' : '9100',
+                        'labels': { 'service' : 'mss_customers_logstash_node' },
+                },
+		{
+                        'name': 'mss_customers_logstash_exporter',
+                        're' : 'logstash.*',
+                        'port' : '9198',
+                        'labels': { 'service' : 'mss_customers_logstash_exporter' },
                 },
                 {
-                        'name': 'JMX',
-                        're' : 'kafka.*',
+                        'name': 'JMX1',
+                        're' : 'kafka-[0-9]+.*',
                         'port' : '7071',
-                        'labels': { 'service': 'kafka_JMX' },
+                        'labels': { 'service': 'kafka_JMX',
+				    'cluster': 'one' },
+                },
+                {
+                        'name': 'JMX2',
+                        're' : 'kafka-cluster2.*',
+                        'port' : '7071',
+                        'labels': { 'service': 'kafka_JMX',
+				    'cluster': 'two' },
                 },
 		{
                         'name': 'lb_node',
@@ -205,11 +233,34 @@ def main():
                         'labels': { 'service' : 'lb_node' },
                 },
 		{
-                        'name': 'lb_node',
+                        'name': 'lb_stats',
                         're' : 'lb.*',
                         'port' : '9101',
                         'labels': { 'service' : 'haproxy' },
-                        'labels': { 'service': 'JMX' },
+                },
+		{
+                        'name': 'ls_node',
+                        're' : 'ls.*',
+                        'port' : '9100',
+                        'labels': { 'service' : 'logstash_node' },
+                },
+		{
+                        'name': 'ls_stats',
+                        're' : 'ls.*',
+                        'port' : '9198',
+                        'labels': { 'service' : 'logstash' },
+                },
+		{
+                        'name': 'belt',
+                        're' : '(pantsport.*)|(belt*)',
+                        'port' : '8317',
+                        'labels': { 'service' : 'belt' },
+                },
+		{
+                        'name': 'logstash-source',
+                        're' : '(logstash-source-*)|(logstash-s3)',
+                        'port' : '9198',
+                        'labels': { 'service' : 'kafka-to-s3' },
                 },
                 ])
 		time.sleep(args['interval'])
