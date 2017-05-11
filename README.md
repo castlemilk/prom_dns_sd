@@ -21,7 +21,7 @@ The command line enables the specification of multiple parameters:
 ```python
 python collector.py -i <interval> -n <dns nameserver> -z <dns zone> -f <prometheus sd file>
 ```
-`-i` `--interval`  time interval in seconds to poll the DNS server
-`-n` `--nameserver` nameserver', help='nameserver to poll
-`-z` `--zone` domain zone to discover services from
-`-f` `--file` file destination for service discovery
+`-i` `--interval`  time interval in seconds to poll the DNS server<b />
+`-n` `--nameserver` nameserver', help='nameserver to poll<b />
+`-z` `--zone` domain zone to discover services from<b />
+`-f` `--file` file destination for service discovery<b />
